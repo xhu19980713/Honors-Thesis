@@ -1,0 +1,46 @@
+---
+title: "SURF_analysis"
+author: "Diane Hu"
+date: "8/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library("spdep")
+library("pander")
+df= read.csv("result_2015.csv",header =TRUE)
+dim(df)
+df$log.K = log(df$K)
+df$log.U = log(df$U) #measured in thousands
+df$log.U[df$log.U==-Inf]=0 
+df$log.I = log(df$I*1000)#measured in millions of dollar
+df$log.gdp = log(df$GDP)#measured in thousands
+df$log.pop = log(df$POP/1000)
+CBSAFP = unlist(read.csv("fips_subset_2015.csv",header=TRUE))
+df.nb=read.gwt2nb("sample_2015.gwt",region.id=CBSAFP)
+df.nbw = nb2listw(df.nb,style="W")
+summary(df)
+```
+
+```{r}
+df.lm =lm(log.K~log.I+log.U+log.pop+log.gdp,data=df)
+summary(df.lm)
+```
+
+
+
+```{r}
+lm.morantest(df.lm,df.nbw)
+```
+
+```{r}
+library(spatialreg)
+df.sar = spautolm(log.K~log.I+log.U+log.pop+log.gdp,data=df,listw=df.nbw)
+summary(df.sar)
+```
+
+
